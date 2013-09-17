@@ -71,11 +71,11 @@ def myCallback(ticklist, port, address):
 chip1 = MCP23017(0x20, 1)
 chip2 = MCP23017(0x21, 1)
 
-chip1.init_ports({'A': 4, 'B': 17})
+chip1.init_ports({'A':4, 'B':17})
 chip1.set_config(IOCON['INTPOL'])
 chip1.set_interrupt_handler(myCallback)
 
-chip2.init_ports({'A': 22, 'B': 27})
+chip2.init_ports({'A':22, 'B':27})
 chip2.set_config(IOCON['INTPOL'])
 chip2.set_interrupt_handler(myCallback)
 
