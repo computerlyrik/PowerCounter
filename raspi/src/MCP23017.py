@@ -94,8 +94,8 @@ class PortManager:
       # WRITE Register Interrupt activate (GPINTEN)
       i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPINTEN'],0xff),
     )
-    log.debug("Initialize Interrupt for GPIO pin "+ str(interrupt_pin))
-    GPIO.setup(interrupt_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    log.debug("Initialize Interrupt for GPIO pin "+ str(self.interrupt_pin))
+    GPIO.setup(self.interrupt_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
   def set_callback(self, callback):
@@ -105,10 +105,10 @@ class PortManager:
       i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPIO']),
       i2c.reading(self.parent.ADDRESS, 1))[0][0] ^ 0b11111111
     log.debug("Re-Setting initial state of port is now 0b{0:b}".format(self.state))
-    self.external_callback = callback
     if self.external_callback is None:
       log.debug("first call of set_callback: enabling RPi interrupt")
       GPIO.add_event_detect(self.interrupt_pin, GPIO.RISING, callback = self.callback)
+    self.external_callback = callback
 
   def callback(self, channel):
     log.info("Interrupt detected on address 0x{0:x} with prefix 0x{1:x}; channel {2}".format(self.parent.ADDRESS, self.PREFIX, channel))
