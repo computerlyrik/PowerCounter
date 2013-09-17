@@ -94,7 +94,7 @@ class PortManager:
       # WRITE Register Interrupt activate (GPINTEN)
       i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPINTEN'],0xff),
     )
-    log.debug("Initialize Interrupt "+name+" for GPIO pin "+ str(interrupt_pin))
+    log.debug("Initialize Interrupt for GPIO pin "+ str(interrupt_pin))
     GPIO.setup(interrupt_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
