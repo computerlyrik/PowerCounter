@@ -37,9 +37,6 @@ logging.getLogger( "PC4004B" ).setLevel( logging.DEBUG )
 log = logging.getLogger("PowerCounter")
 log.setLevel(logging.DEBUG)
 
-#SET UP SHIELD
-chip1 = MCP23017(0x20, 4)
-chip2 = MCP23017(0x21, 22)
 
 def json_tick_consumer():
   while True:
@@ -70,15 +67,16 @@ def myCallback(ticklist, port, address):
           address, # yields the i2c address of the controller associated with the port
           int(unix_time_millis(datetime.datetime.utcnow()))))
 
-chip1.initialize_ports()
+#SET UP SHIELD
+chip1 = MCP23017(0x20, 1)
+chip2 = MCP23017(0x21, 1)
+
+chip1.init_ports({'A': 4, 'B': 17})
 chip1.set_config(IOCON['INTPOL'])
-#chip1.unset_config(IOCON['ODR'])
 chip1.set_interrupt_handler(myCallback)
 
-chip2.initialize_ports()
+chip2.init_ports({'A': 22, 'B': 27})
 chip2.set_config(IOCON['INTPOL'])
-chip2.set_config(IOCON['MIRROR'])
-#chip2.unset_config(IOCON['ODR'])
 chip2.set_interrupt_handler(myCallback)
 
 

@@ -167,7 +167,7 @@ class MCP23017:
       REGISTER = MAPPING['NOBANK']
 
   #initialize ports and set them for interrupts
-  def initialize_ports(self, interrupts):
+  def init_ports(self, interrupts):
 
     #!important! Initialize Ports after bank has been set to 1
     self.PORTS = { 'A': PortManager(self.ADDRESS, 0x00, interrupts['A']), 
