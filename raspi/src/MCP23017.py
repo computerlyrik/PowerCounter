@@ -119,15 +119,22 @@ class PortManager:
       #READ INTF TO FIND OUT INITIATING PIN
       i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['INTF']),
       i2c.reading(self.parent.ADDRESS,1),
+      #READ INTCAP TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
+      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['INTCAP']),
+      i2c.reading(self.parent.ADDRESS,1),
       #READ GPIO TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
       i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPIO']),
       i2c.reading(self.parent.ADDRESS,1),
+
     )
 
     intf = erg[0][0]
     log.debug("INTF was 0b{0:b}".format(intf))
-    gpio = (erg[1][0] ^ 0b11111111)
+    intcap = (erg[1][0] ^ 0b11111111)
+    log.debug("INTCAP was 0b{0:b}".format(intcap))
+    gpio = (erg[2][0] ^ 0b11111111)
     log.debug("GPIO was 0b{0:b}".format(gpio))
+
     current = intf | gpio
     
         
