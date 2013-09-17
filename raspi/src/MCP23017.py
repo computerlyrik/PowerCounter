@@ -146,9 +146,8 @@ class PortManager:
     self.external_callback(changes, self.prefix, self.parent.ADDRESS)
 
 class MCP23017:
-  ADDRESS = 0x21
+  ADDRESS = None
   PORTS = {}
-  INTERRUPTS = None
   REGISTER = None
 
   def __init__(self, address, bank):
@@ -175,12 +174,6 @@ class MCP23017:
     #!important! Initialize Ports after bank has been set to 1
     self.PORTS = { 'A': PortManager(self, 0x00, interrupts['A']), 
                    'B': PortManager(self, 0x10, interrupts['B'])}
-
-
-  def activate_mirror(self):
-    # Set MIRROR = 1 for INTA and INTB OR'd (IOCON register)
-    self.set_config(IOCON['MIRROR'])
-
 
   def set_config(self, config):
       log.info("Register Access IOCON, adding: 0b{0:b}".format(config))
