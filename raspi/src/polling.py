@@ -12,8 +12,8 @@ chips = [MCP23017(0x20, 1),
 
 
 #enable interrupts:
-chips[0].init_interrupts({'A': 4, 'B': 17})
-chips[1].init_interrupts({'A': 22, 'B':27})
+chips[0].init_ports({'A': 4, 'B': 17})
+chips[1].init_ports({'A': 22, 'B':27})
 
 def handler(string):
   print(string)
