@@ -204,7 +204,7 @@ class MCP23017:
 
   def set_interrupt_handler(self, callback_method):
     for name, portmanager in self.PORTS.items():
-      log.info("Add callback to GPIO {0} (Interrupt {1}) on address 0x{2:x}".format(gpio_pin,name, self.ADDRESS))
+      log.info("Add callback to Port {0} on address 0x{1:x}".format(name, self.ADDRESS))
       port_manager = self.PORTS[name]
       port_manager.set_callback(callback_method)
 
