@@ -93,13 +93,11 @@ class PortManager:
     return
 
   def __init__(self, mcp, prefix, interrupt_pin):
+    log.debug("Initialize port 0x{0:x}".format(self.PREFIX))
     self.lock = Lock()
     self.PREFIX = prefix
     self.interrupt_pin = interrupt_pin
     self.parent = mcp
-    log.debug("Initialize port 0x{0:x}".format(self.PREFIX))
-
-
     log.debug("Initialize Pulldown for GPIO pin "+ str(self.interrupt_pin))
     GPIO.setup(self.interrupt_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -171,14 +169,14 @@ class PortManager:
     self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IODIR'])
   #set all pins at once
   def pin_mode(self, mode):
-    parent.write(PREFIX|self.parent.REGISTER['IODIR'], mode)
+    self.parent.write(PREFIX|self.parent.REGISTER['IODIR'], mode)
   
   #set single pullup  
   def pullup_mode(self, pin, mode):
     self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['GPPU'])
   #set all pullups at once
   def pin_mode(self, mode):
-    parent.write(PREFIX|self.parent.REGISTER['GPPU'], mode)
+    self.parent.write(PREFIX|self.parent.REGISTER['GPPU'], mode)
 
 
   #set single input invert  
