@@ -59,7 +59,7 @@ def myCallback(ticklist, port, address):
   if ticklist > 0:
     for i in range(8):
       if ticklist & (1 << i):
-        log.info("Adding Tick to Queue: Chip {0:02#X} | Port {1:02#X} | Pin {2}".format(address, port, i))
+        log.info("Adding Tick to Queue: Chip {0:#04X} | Port {1:#04X} | Pin {2}".format(address, port, i))
         ticks_queue.put((
           i, # yields the pin number
           port, # yields the port number associated with the pin which for some reason is called bank
