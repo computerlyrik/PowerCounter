@@ -245,18 +245,18 @@ class MCP23017:
 
   #initialize ports and set them for interrupts
   def init_ports(self, interrupts):
-    for name, gpio_pin in interrupts:
+    for name, gpio_pin in interrupts.items():
       #!important! Initialize Ports after bank has been set to 1
       self.PORT[name] = PortManager(self, 0x00, gpio_pin)
 
   # to comfortably set and unset chip config
   def set_config(self, config):
       log.info("Access IOCON, adding: 0b{0:b}".format(config))
-      set_register(REGISTER['IOCON'],config)
+      self.set_register(self.REGISTER['IOCON'],config)
 
   def unset_config(self, config):
       log.info("Access IOCON, removing: 0b{0:b}".format(config))
-      unset_register(REGISTER['IOCON'],config)
+      self.unset_register(self.REGISTER['IOCON'],config)
 
   # Support bitwise setting and unsetting of register values
   def set_register(self, register, config):
