@@ -88,36 +88,19 @@ class PortManager:
   parent = None
   PREFIX = None
 
+  #Without prefix assume 16bit bank0 mode(?)
+  def __init__(self, mcp, interrupt_pin):
+    return
+
   def __init__(self, mcp, prefix, interrupt_pin):
     self.lock = Lock()
     self.PREFIX = prefix
     self.interrupt_pin = interrupt_pin
     self.parent = mcp
     log.debug("Initialize port 0x{0:x}".format(self.PREFIX))
-    '''
-    This method basically sets up the chip for further operations and 
-    defines the electrical wiring as followes:
-     - internal pullups are activated
-     - connects to ground if power meter closes circuit
-    '''
-    BUS.transaction(
-      #Set port to input pin
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['IODIR'],0xff),
 
-      ## WRITE Register configure Interrupt mode to interrupt on pin change (INTCON)
-      #self.BUS.write_byte_data(chip,bank|self.REGISTER_INTCON, 0x00)
-      # WRITE Register configure Interrupt mode to compare on Value(INTCON)
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['INTCON'], 0xff),
-      # WRITE Register set compare Value 
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['DEFVAL'], 0xff),
-      # reflect opposite polarity of pins in GPIO register
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['IPOL'], 0x00),
-      # WRITE Register activate internal pullups
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPPU'], 0xff),
-      # WRITE Register Interrupt activate (GPINTEN)
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPINTEN'],0xff),
-    )
-    log.debug("Initialize Interrupt for GPIO pin "+ str(self.interrupt_pin))
+
+    log.debug("Initialize Pulldown for GPIO pin "+ str(self.interrupt_pin))
     GPIO.setup(self.interrupt_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
@@ -200,10 +183,17 @@ class PortManager:
 
   #set single input invert  
   def input_invert(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IOPOL'])
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IPOL'])
   #set all invertings 
   def input_invert(self, mode):
     self.parent.write(PREFIX|self.parent.REGISTER['IPOL'], mode)
+
+  #set interrupt for single pin  
+  def interrupt_enable(self, pin, mode):
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['GPINTEN'])
+  #set inerrupt for all pins
+  def interrupt_enable(self, mode):
+    self.parent.write(PREFIX|self.parent.REGISTER['GPINTEN'], mode)
 
   #write single pin value
   def digital_write(self, pin, mode):
@@ -242,12 +232,6 @@ class MCP23017:
         i2c.writing_bytes(self.ADDRESS,0x14, 0 ),
         i2c.writing_bytes(self.ADDRESS,0x0A, 0 ))
       self.REGISTER = REGISTER_MAPPING['NOBANK']
-
-  #DEPRECATED
-  def init_ports(self, interrupts):
-    for name, gpio_pin in interrupts.items():
-      #!important! Initialize Ports after bank has been set to 1
-      self.PORT[name] = PortManager(self, 0x00, gpio_pin)
 
   # to comfortably set and unset chip config
   def set_config(self, config):

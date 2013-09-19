@@ -67,20 +67,42 @@ def myCallback(ticklist, port, address):
           address, # yields the i2c address of the controller associated with the port
           int(unix_time_millis(datetime.datetime.utcnow()))))
 
+ports = {}
 #SET UP SHIELD
 chip1 = MCP23017(0x20, 1)
 chip1.set_config(IOCON['INTPOL'])
-port1_A = PortManager(chip1, 0x00, 4)
-port1_A.set_callback(myCallback)
-port1_B = PortManager(chip1, 0x10, 17)
-port1_B.set_callback(myCallback)
+ports['port1_A'] = PortManager(chip1, 0x00, 4)
+ports['port1_B'] = PortManager(chip1, 0x10, 17)
+
 
 chip2 = MCP23017(0x21, 1)
 chip2.set_config(IOCON['INTPOL'])
-port2_A = PortManager(chip2, 0x00, 22)
-port2_A.set_callback(myCallback)
-port2_B = PortManager(chip2, 0x10, 27)
-port2_B.set_callback(myCallback)
+ports['port2_A'] = PortManager(chip2, 0x00, 22)
+ports['port2_B'] = PortManager(chip2, 0x10, 27)
+
+
+for name,port in ports.items():
+  '''
+  This method basically sets up the chip for further operations and 
+  defines the electrical wiring as followes:
+  - internal pullups are activated
+  - connects to ground if power meter closes circuit
+  '''
+  #Set port to input pin
+  port.pin_mode(0xff)
+  # WRITE Register configure Interrupt mode to compare on Value(INTCON)
+  port.parent.write(port.PREFIX|port.parent.REGISTER['INTCON'], 0xff)
+  # WRITE Register set compare Value 
+  port.parent.write(port.PREFIX|port.parent.REGISTER['DEFVAL'], 0xff)
+  # reflect opposite polarity of pins in GPIO register
+  port.input_invert(0x00)
+  # WRITE Register activate internal pullups
+  port.pullup_mode(0xFF)
+  # WRITE Register Interrupt activate (GPINTEN)
+  port.interrupt_enable(0xff)
+  
+  #set our callback
+  port.set_callback(myCallback)
 
 thread_consumer = Thread(target = json_tick_consumer)
 thread_consumer.start()
