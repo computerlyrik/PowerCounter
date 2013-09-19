@@ -243,7 +243,7 @@ class MCP23017:
         i2c.writing_bytes(self.ADDRESS,0x0A, 0 ))
       self.REGISTER = REGISTER_MAPPING['NOBANK']
 
-  #initialize ports and set them for interrupts
+  #DEPRECATED
   def init_ports(self, interrupts):
     for name, gpio_pin in interrupts.items():
       #!important! Initialize Ports after bank has been set to 1
@@ -281,9 +281,9 @@ class MCP23017:
 
   # set up a interrupt handler for all ports registered on this chip
   def set_interrupt_handler(self, callback_method):
-    for name, portmanager in self.PORTS.items():
+    for name, portmanager in self.PORT.items():
       log.info("Add callback to Port {0} on address 0x{1:x}".format(name, self.ADDRESS))
-      port_manager = self.PORTS[name]
+      port_manager = self.PORT[name]
       port_manager.set_callback(callback_method)
 
   # read and write to specific register

@@ -69,16 +69,18 @@ def myCallback(ticklist, port, address):
 
 #SET UP SHIELD
 chip1 = MCP23017(0x20, 1)
-chip2 = MCP23017(0x21, 1)
-
-chip1.init_ports({'A':4, 'B':17})
 chip1.set_config(IOCON['INTPOL'])
-chip1.set_interrupt_handler(myCallback)
+port1_A = PortManager(chip1, 0x00, 4)
+port1_A.set_callback(myCallback)
+port1_B = PortManager(chip1, 0x10, 17)
+port1_B.set_callback(myCallback)
 
-chip2.init_ports({'A':22, 'B':27})
+chip2 = MCP23017(0x21, 1)
 chip2.set_config(IOCON['INTPOL'])
-chip2.set_interrupt_handler(myCallback)
-
+port2_A = PortManager(chip2, 0x00, 22)
+port2_A.set_callback(myCallback)
+port2_B = PortManager(chip2, 0x10, 27)
+port2_B.set_callback(myCallback)
 
 thread_consumer = Thread(target = json_tick_consumer)
 thread_consumer.start()
