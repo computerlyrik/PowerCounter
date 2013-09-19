@@ -56,7 +56,6 @@ def json_tick_consumer():
 
 #Simply write a small callback that takes a byte reflecting the ticks on pins
 def myCallback(ticklist, port, address): 
-  log.info(ticklist)
   if ticklist > 0:
     for i in range(8):
       if ticklist & (1 << i):
