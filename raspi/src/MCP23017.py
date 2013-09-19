@@ -259,6 +259,23 @@ class MCP23017(object):
         i2c.writing_bytes(self.ADDRESS,0x14, 0 ),
         i2c.writing_bytes(self.ADDRESS,0x0A, 0 ))
 
+  ################
+  # Port generation
+  # this essentially generates ports depending on your 
+  # - bank config 
+  # - given parameters
+  ######################
+
+  def generate_ports(self, interrupt_s):
+    if isinstance(interrupt_s, dict): # 8-bit mode configuration
+      ports = {}
+      ports[str(self.ADDRESS)+'_A'] = PortManager(self, 0, interrupt_s['A'])
+      ports[str(self.ADDRESS)+'_B'] = PortManager(self, 0x10 if self.BANK else 1, interrupt_s['B'])
+      return ports
+    elif isinstance(x, basestring): # 16-bit configuration - NOT SUPPORTED
+        return None
+
+
   # to comfortably set and unset chip config
   def set_config(self, config):
       log.info("Access IOCON, adding: 0b{0:b}".format(config))

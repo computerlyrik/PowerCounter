@@ -71,17 +71,18 @@ ports = {}
 #SET UP SHIELD
 chip1 = MCP23017(0x20, 1)
 chip1.set_config(IOCON['INTPOL'])
-ports['port1_A'] = PortManager(chip1, 0x00, 4)
-ports['port1_B'] = PortManager(chip1, 0x10, 17)
+ports.update(chip1.generate_ports({'A':4, 'B':17}))
+
 
 
 chip2 = MCP23017(0x21, 1)
 chip2.set_config(IOCON['INTPOL'])
-ports['port2_A'] = PortManager(chip2, 0x00, 22)
-ports['port2_B'] = PortManager(chip2, 0x10, 27)
+ports.update(chip2.generate_ports({'A':22, 'B':27}))
+
 
 
 for name,port in ports.items():
+  print(name)
   '''
   This method basically sets up the chip for further operations and 
   defines the electrical wiring as followes:
