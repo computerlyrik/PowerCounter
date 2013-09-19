@@ -157,7 +157,9 @@ class PortManager:
     self.external_callback(changes, self.PREFIX, self.parent.ADDRESS)
 
 
-  def _resolve_register(register):
+  #Arduino-Lib like methods
+
+  def _resolve_register(self,register):
     return register|self.PREFIX
 
   def _high_level_setter_single_pin(self, pin, mode, register):
@@ -178,7 +180,7 @@ class PortManager:
   def pullup_mode(self, pin, mode):
     self._high_level_setter_single_pin(self, pin, mode, self._resolve_register(self.parent.REGISTER['GPPU']))
   #set all pullups at once
-  def pin_mode(self, mode):
+  def pullup_mode(self, mode):
     self.parent.write(self._resolve_register(self.parent.REGISTER['GPPU']), mode)
 
 
