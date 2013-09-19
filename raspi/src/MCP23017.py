@@ -264,11 +264,11 @@ class MCP23017(object):
     #EVERYTHING else goes to zero - some magic to write bit on both settings
     if self.BANK == 1: #assume has been bank=0 before
       BUS.transaction( 
-        i2c.writing_bytes(self.ADDRESS,0x14, IOCON['BANK']),
+        i2c.writing_bytes(self.ADDRESS,0x15, IOCON['BANK']),
         i2c.writing_bytes(self.ADDRESS,0x0A, IOCON['BANK']))
     elif self.BANK == 0:
       BUS.transaction( 
-        i2c.writing_bytes(self.ADDRESS,0x14, 0 ),
+        i2c.writing_bytes(self.ADDRESS,0x15, 0 ),
         i2c.writing_bytes(self.ADDRESS,0x0A, 0 ))
 
   ################
