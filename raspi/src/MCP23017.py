@@ -38,9 +38,9 @@ BUS = i2c.I2CMaster()
 
 GPIO.setmode(GPIO.BCM)
 
-# Register Mapping for Bank=1 mode
+# Register Mapping for Bank SETTING mode
 REGISTER_MAPPING = { 
-  'NOBANK' : {
+  0 : {
     'IODIR': 0X00,
     'IPOL': 0X02,
     'GPINTEN': 0X04,
@@ -53,7 +53,7 @@ REGISTER_MAPPING = {
     'GPIO': 0X12,
     'OLAT': 0X14
   },
- 'BANK': {
+ 1: {
     'IODIR': 0X00,
     'IPOL': 0X01,
     'GPINTEN': 0X02,
@@ -88,10 +88,10 @@ class PortManager:
   parent = None
   PREFIX = None
 
-  #Without prefix assume 16bit bank0 mode(?)
-  def __init__(self, mcp, interrupt_pin):
-    return
-    
+
+  ## Valid prefix values:
+  # bank = 0 : 0, 1
+  # bank = 1 : 0x00, 0x10    
   def __init__(self, mcp, prefix, interrupt_pin, register_resolver = None):
     if register_resolver is not None:
       self._resolve_register = register_resolver
@@ -108,7 +108,7 @@ class PortManager:
     log.debug("Set callback "+str(callback))
     self.state = BUS.transaction(
       #Set port to input pin
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPIO']),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['GPIO'])),
       i2c.reading(self.parent.ADDRESS, 1))[0][0] ^ 0b11111111
     log.debug("Re-Setting initial state of port is now 0b{0:b}".format(self.state))
     if self.external_callback is None:
@@ -123,13 +123,13 @@ class PortManager:
     log.debug("Before State is 0b{0:b}".format(self.state))
     erg = BUS.transaction(
       #READ INTF TO FIND OUT INITIATING PIN
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['INTF']),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['INTF'])),
       i2c.reading(self.parent.ADDRESS,1),
       #READ INTCAP TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['INTCAP']),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['INTCAP'])),
       i2c.reading(self.parent.ADDRESS,1),
       #READ GPIO TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
-      i2c.writing_bytes(self.parent.ADDRESS,self.PREFIX|self.parent.REGISTER['GPIO']),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['GPIO'])),
       i2c.reading(self.parent.ADDRESS,1),
 
     )
@@ -163,12 +163,10 @@ class PortManager:
   ##########################
 
   def _resolve_register(self,register):
-    return register|self.PREFIX
-
-  '''
-  def _resolve_register(self,register):
-    return register + self.PREFIX
-  '''
+    if self.parent.BANK == 0:
+      return self.PREFIX + register
+    elif self.parent.BANK == 1:
+      return self.PREFIX | register
 
   def _high_level_setter_single_pin(self, pin, mode, register):
     config = 1 << pin;
@@ -237,28 +235,29 @@ class PortManager:
   def digital_read(self):
     return self.parent.read(self._resolve_register(self.parent.REGISTER['GPIO']))
 
-class MCP23017:
+class MCP23017(object):
   ADDRESS = None
-  PORT = {}
-  REGISTER = None
+  BANK = None
+
+  @property
+  def REGISTER(self):
+    return REGISTER_MAPPING[self.BANK]
 
   def __init__(self, address, bank = 0):
     log.info("Initialize MCP23017 on 0x{0:x}".format(address))
     #self._lock = Lock()
     self.ADDRESS = address
-
+    self.BANK = bank
     #Set bank state for easier Addressing of banks (IOCON register)
     #EVERYTHING else goes to zero - some magic to write bit on both settings
-    if bank == 1: #assume has been bank=0 before
+    if self.BANK == 1: #assume has been bank=0 before
       BUS.transaction( 
         i2c.writing_bytes(self.ADDRESS,0x14, IOCON['BANK']),
         i2c.writing_bytes(self.ADDRESS,0x0A, IOCON['BANK']))
-      self.REGISTER = REGISTER_MAPPING['BANK']
-    elif bank == 0:
+    elif self.BANK == 0:
       BUS.transaction( 
         i2c.writing_bytes(self.ADDRESS,0x14, 0 ),
         i2c.writing_bytes(self.ADDRESS,0x0A, 0 ))
-      self.REGISTER = REGISTER_MAPPING['NOBANK']
 
   # to comfortably set and unset chip config
   def set_config(self, config):
