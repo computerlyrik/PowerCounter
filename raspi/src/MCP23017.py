@@ -155,7 +155,7 @@ class PortManager:
     log.debug("Lock released!")
 
     #call callback after lock release
-    log.info("Sending changes 0b{0:b} to callback method".format(changes))
+    log.debug("Sending changes 0b{0:b} to callback method".format(changes))
     self.external_callback(changes, self.PREFIX, self.parent.ADDRESS)
 
   ##########################
@@ -235,6 +235,18 @@ class PortManager:
   def digital_read(self):
     return self.parent.read(self._resolve_register(self.parent.REGISTER['GPIO']))
 
+
+
+
+#################################
+#
+# Class modeling a MCP23017 chip
+#
+#################################
+
+
+
+
 class MCP23017(object):
   ADDRESS = None
   BANK = None
@@ -287,7 +299,7 @@ class MCP23017(object):
 
   # Support bitwise setting and unsetting of register values
   def set_register(self, register, config):
-      log.info("Register 0x{0:x} adding: 0b{1:b}".format(register, config))
+      log.debug("Register 0x{0:x} adding: 0b{1:b}".format(register, config))
       register_value = BUS.transaction(
               i2c.writing_bytes(self.ADDRESS, register),
               i2c.reading(self.ADDRESS, 1))
@@ -297,7 +309,7 @@ class MCP23017(object):
       log.debug("Register after 0b{0:b}".format(register_value[0][0] | config))
 
   def unset_register(self, register, config):
-      log.info("Register 0x{0:x}, removing: 0b{1:b}".format(register, config))
+      log.debug("Register 0x{0:x}, removing: 0b{1:b}".format(register, config))
       register_value = BUS.transaction(
               i2c.writing_bytes(self.ADDRESS, register),
               i2c.reading(self.ADDRESS, 1))

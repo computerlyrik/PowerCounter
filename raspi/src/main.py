@@ -82,7 +82,7 @@ ports.update(chip2.generate_ports({'A':22, 'B':27}))
 
 
 for name,port in ports.items():
-  print(name)
+  print(" Setting up port "+name)
   '''
   This method basically sets up the chip for further operations and 
   defines the electrical wiring as followes:
