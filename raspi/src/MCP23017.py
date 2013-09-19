@@ -284,16 +284,3 @@ class MCP23017:
     BUS.transaction(
       i2c.writing_bytes(self.ADDRESS, register ,value),
     )
- 
-'''
-  def write(self, register):
-    bus.transaction(i2c.writing_bytes(address, expander_registers["gpinten"], 0xFF, 0xFF))
-  except IOError as ex:
-    try:
-      bus.close()
-    except:
-      pass
-    display_show_failure(str(ex))
-    while True:
-      time.sleep(1)
-''' 
