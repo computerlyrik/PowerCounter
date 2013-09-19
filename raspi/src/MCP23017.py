@@ -93,7 +93,7 @@ class PortManager:
     return
 
   def __init__(self, mcp, prefix, interrupt_pin):
-    log.debug("Initialize port 0x{0:x}".format(self.PREFIX))
+    log.debug("Initialize port 0x{0:x}".format(prefix))
     self.lock = Lock()
     self.PREFIX = prefix
     self.interrupt_pin = interrupt_pin
@@ -157,6 +157,9 @@ class PortManager:
     self.external_callback(changes, self.PREFIX, self.parent.ADDRESS)
 
 
+  def _get_register(register):
+    return register|self.PREFIX
+
   def _high_level_setter_single_pin(self, pin, mode, register):
     config = 1 << pin;
     if mode == 0:
@@ -166,47 +169,47 @@ class PortManager:
 
   #set single pin to specific mode
   def pin_mode(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IODIR'])
+    self._high_level_setter_single_pin(self, pin, mode, _get_register(REGISTER['IODIR']))
   #set all pins at once
   def pin_mode(self, mode):
-    self.parent.write(PREFIX|self.parent.REGISTER['IODIR'], mode)
+    self.parent.write(_get_register(REGISTER['IODIR']), mode)
   
   #set single pullup  
   def pullup_mode(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['GPPU'])
+    self._high_level_setter_single_pin(self, pin, mode, _get_register(REGISTER['GPPU']))
   #set all pullups at once
   def pin_mode(self, mode):
-    self.parent.write(PREFIX|self.parent.REGISTER['GPPU'], mode)
+    self.parent.write(_get_register(REGISTER['GPPU']), mode)
 
 
   #set single input invert  
   def input_invert(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IPOL'])
+    self._high_level_setter_single_pin(self, pin, mode, _get_register(REGISTER['IPOL']))
   #set all invertings 
   def input_invert(self, mode):
-    self.parent.write(PREFIX|self.parent.REGISTER['IPOL'], mode)
+    self.parent.write(_get_register(REGISTER['IPOL']), mode)
 
   #set interrupt for single pin  
   def interrupt_enable(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['GPINTEN'])
+    self._high_level_setter_single_pin(self, pin, mode, _get_register(REGISTER['GPINTEN']))
   #set inerrupt for all pins
   def interrupt_enable(self, mode):
-    self.parent.write(PREFIX|self.parent.REGISTER['GPINTEN'], mode)
+    self.parent.write(_get_register(REGISTER['GPINTEN']), mode)
 
   #write single pin value
   def digital_write(self, pin, mode):
-    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['OLAT'])
+    self._high_level_setter_single_pin(self, pin, mode, _get_register(REGISTER['OLAT']))
   #write all pins
   def digital_write(self, mode):
-    self.parent.write(PREFIX|self.parent.REGISTER['OLAT'], mode)
+    self.parent.write(_get_register(REGISTER['OLAT']), mode)
 
   #read single pin value
   def digital_read(self, pin):
-    value = self.parent.read(PREFIX|self.parent.REGISTER['GPIO'])
+    value = self.parent.read(_get_register(REGISTER['GPIO']))
     return (value >> pin) & 0b00000001
   #read all pins
   def digital_read(self):
-    return self.parent.read(PREFIX|self.parent.REGISTER['GPIO'])
+    return self.parent.read(_get_register(REGISTER['GPIO']))
 
 class MCP23017:
   ADDRESS = None
