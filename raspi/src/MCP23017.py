@@ -1,13 +1,28 @@
 import time
 import quick2wire.i2c as i2c
-#from smbus import SMBus
 import re
 import logging
 from threading import Lock
 from RPi import GPIO
 
 
-# support for the "PC4004B" displays floating around the lab. 
+# Support library for MCP23017 on Raspberry pi
+# Currently following features are supported
+# - Initialize Chip with address on i2c bus
+# - Initialize Chip with Bank-Mode configured as on or off
+# - Read from specific Register
+# - Write to specific register
+# - Setting a specific config in IOCON
+# - Unsetting a specific config in IOCON
+# - Initialize 
+
+# - TODO: make PortManager compatible to Bank=0 mode 
+
+# - TODO: implement 16 bit mode, affects:
+# - read() method
+# - write() method
+# - interrupt mirrors setting(?)
+#  
 # there is no datasheet - althought the PFY claims to have one
 # pinouts have been determined by checking the controller outputs
 # it contains two HD44780 compatible controllers selected by E and E2 
@@ -54,9 +69,17 @@ REGISTER_MAPPING = {
 }
 
 
-# mapping of pins inside icocon register
+# mapping of bits inside icocon register
 IOCON = {'BANK':0b10000000, 'MIRROR': 0b01000000, 'DISSLW': 0b00010000, 'HAEN': 0b00001000, 'ODR': 0b00000100, 'INTPOL': 0b00000010}
 
+MODE_INPUT = 0
+MODE_OUTPUT = 1
+
+MODE_PULLUP_HIGH = 1
+MODE_PULLUP_DISABLE = 0
+
+MODE_INVERT = 1
+MODE_NOINVERT = 0
 
 class PortManager:
 
@@ -152,9 +175,54 @@ class PortManager:
     log.info("Sending changes 0b{0:b} to callback method".format(changes))
     self.external_callback(changes, self.PREFIX, self.parent.ADDRESS)
 
+
+  def _high_level_setter_single_pin(self, pin, mode, register):
+    config = 1 << pin;
+    if mode == 0:
+      parent.unset_register(register, config)
+    else:
+      parent.set_register(register, config)
+
+  #set single pin to specific mode
+  def pin_mode(self, pin, mode):
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IODIR'])
+  #set all pins at once
+  def pin_mode(self, mode):
+    parent.write(PREFIX|self.parent.REGISTER['IODIR'], mode)
+  
+  #set single pullup  
+  def pullup_mode(self, pin, mode):
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['GPPU'])
+  #set all pullups at once
+  def pin_mode(self, mode):
+    parent.write(PREFIX|self.parent.REGISTER['GPPU'], mode)
+
+
+  #set single input invert  
+  def input_invert(self, pin, mode):
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['IOPOL'])
+  #set all invertings 
+  def input_invert(self, mode):
+    self.parent.write(PREFIX|self.parent.REGISTER['IPOL'], mode)
+
+  #write single pin value
+  def digital_write(self, pin, mode):
+    self._high_level_setter_single_pin(self, pin, mode, PREFIX|self.parent.REGISTER['OLAT'])
+  #write all pins
+  def digital_write(self, mode):
+    self.parent.write(PREFIX|self.parent.REGISTER['OLAT'], mode)
+
+  #read single pin value
+  def digital_read(self, pin):
+    value = self.parent.read(PREFIX|self.parent.REGISTER['GPIO'])
+    return (value >> pin) & 0b00000001
+  #read all pins
+  def digital_read(self):
+    return self.parent.read(PREFIX|self.parent.REGISTER['GPIO'])
+
 class MCP23017:
   ADDRESS = None
-  PORTS = {}
+  PORT = {}
   REGISTER = None
 
   def __init__(self, address, bank):
@@ -177,39 +245,48 @@ class MCP23017:
 
   #initialize ports and set them for interrupts
   def init_ports(self, interrupts):
+    for name, gpio_pin in interrupts:
+      #!important! Initialize Ports after bank has been set to 1
+      self.PORT[name] = PortManager(self, 0x00, gpio_pin)
 
-    #!important! Initialize Ports after bank has been set to 1
-    self.PORTS = { 'A': PortManager(self, 0x00, interrupts['A']), 
-                   'B': PortManager(self, 0x10, interrupts['B'])}
-
+  # to comfortably set and unset chip config
   def set_config(self, config):
-      log.info("Register Access IOCON, adding: 0b{0:b}".format(config))
-      iocon = BUS.transaction(
-              i2c.writing_bytes(self.ADDRESS, self.REGISTER['IOCON']),
-              i2c.reading(self.ADDRESS, 1))
-      log.debug("IOCON before 0b{0:b}".format(iocon[0][0]))
-      BUS.transaction(
-              i2c.writing_bytes(self.ADDRESS, self.REGISTER['IOCON'], iocon[0][0] | config))
-      log.debug("IOCON after 0b{0:b}".format(iocon[0][0] | config))
+      log.info("Access IOCON, adding: 0b{0:b}".format(config))
+      set_register(REGISTER['IOCON'],config)
 
   def unset_config(self, config):
-      log.info("Register Access IOCON, removing: 0b{0:b}".format(config))
-      iocon = BUS.transaction(
-              i2c.writing_bytes(self.ADDRESS, self.REGISTER['IOCON']),
-              i2c.reading(self.ADDRESS, 1))
-      log.debug("IOCON before 0b{0:b}".format(iocon[0][0]))
-      BUS.transaction(
-              i2c.writing_bytes(self.ADDRESS, self.REGISTER['IOCON'], iocon[0][0] & ~ config))
-      log.debug("IOCON after 0b{0:b}".format(iocon[0][0] & ~ config))
+      log.info("Access IOCON, removing: 0b{0:b}".format(config))
+      unset_register(REGISTER['IOCON'],config)
 
+  # Support bitwise setting and unsetting of register values
+  def set_register(self, register, config):
+      log.info("Register 0x{0:x} adding: 0b{1:b}".format(register, config))
+      register_value = BUS.transaction(
+              i2c.writing_bytes(self.ADDRESS, register),
+              i2c.reading(self.ADDRESS, 1))
+      log.debug("Register before 0b{0:b}".format(register_value[0][0]))
+      BUS.transaction(
+              i2c.writing_bytes(self.ADDRESS, register, register_value[0][0] | config))
+      log.debug("Register after 0b{0:b}".format(register_value[0][0] | config))
+
+  def unset_register(self, register, config):
+      log.info("Register 0x{0:x}, removing: 0b{1:b}".format(register, config))
+      register_value = BUS.transaction(
+              i2c.writing_bytes(self.ADDRESS, register),
+              i2c.reading(self.ADDRESS, 1))
+      log.debug("Register before 0b{0:b}".format(register_value[0][0]))
+      BUS.transaction(
+              i2c.writing_bytes(self.ADDRESS, register, register_value[0][0] & ~ config))
+      log.debug("Register after 0b{0:b}".format(register_value[0][0] & (config ^ 0b11111111)))
+
+  # set up a interrupt handler for all ports registered on this chip
   def set_interrupt_handler(self, callback_method):
     for name, portmanager in self.PORTS.items():
       log.info("Add callback to Port {0} on address 0x{1:x}".format(name, self.ADDRESS))
       port_manager = self.PORTS[name]
       port_manager.set_callback(callback_method)
 
-
-
+  # read and write to specific register
   def read(self, register):
     byte = BUS.transaction(
               i2c.writing_bytes(self.ADDRESS, register),
@@ -218,10 +295,11 @@ class MCP23017:
     return byte[0][0]
   
   def write(self, register, value):
-    log.debug("Writing to address 0x{0:x} register 0x{1:x} value 0b{2:b}".format(self.ADDRESS, register, byte[0][0]))
+    log.debug("Writing to address 0x{0:x} register 0x{1:x} value 0b{2:b}".format(self.ADDRESS, register, value))
     BUS.transaction(
       i2c.writing_bytes(self.ADDRESS, register ,value),
     )
+ 
 '''
   def write(self, register):
     bus.transaction(i2c.writing_bytes(address, expander_registers["gpinten"], 0xFF, 0xFF))
