@@ -32,10 +32,10 @@ ticks_queue = Queue()
 
 #CONFIGURE LOGGING
 logging.basicConfig()
-logging.getLogger( "MCP23017" ).setLevel( logging.DEBUG )
-logging.getLogger( "PC4004B" ).setLevel( logging.DEBUG )
+logging.getLogger( "MCP23017" ).setLevel( logging.INFO )
+logging.getLogger( "PC4004B" ).setLevel( logging.INFO )
 log = logging.getLogger("PowerCounter")
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 
 def json_tick_consumer():
@@ -60,7 +60,7 @@ def myCallback(ticklist, port, address):
   if ticklist > 0:
     for i in range(8):
       if ticklist & (1 << i):
-        log.debug("Adding Tick to Queue (Pin "+str(i)+")")
+        log.info("Adding Tick to Queue (Pin "+str(i)+")")
         ticks_queue.put((
           i, # yields the pin number
           port, # yields the port number associated with the pin which for some reason is called bank
