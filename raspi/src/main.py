@@ -34,6 +34,8 @@ ticks_queue = Queue()
 logging.basicConfig()
 logging.getLogger( "MCP23017" ).setLevel( logging.INFO )
 logging.getLogger( "PC4004B" ).setLevel( logging.INFO )
+FORMAT = '%(asctime) - %(levelname):%(name)s - %(message)s'
+logging.basicConfig(format=FORMAT)
 log = logging.getLogger("PowerCounter")
 log.setLevel(logging.INFO)
 
