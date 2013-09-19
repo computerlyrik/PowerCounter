@@ -91,8 +91,10 @@ class PortManager:
   #Without prefix assume 16bit bank0 mode(?)
   def __init__(self, mcp, interrupt_pin):
     return
-
-  def __init__(self, mcp, prefix, interrupt_pin):
+    
+  def __init__(self, mcp, prefix, interrupt_pin, register_resolver = None):
+    if register_resolver is not None:
+      self._resolve_register = register_resolver
     log.debug("Initialize port 0x{0:x}".format(prefix))
     self.lock = Lock()
     self.PREFIX = prefix
@@ -240,7 +242,7 @@ class MCP23017:
   PORT = {}
   REGISTER = None
 
-  def __init__(self, address, bank):
+  def __init__(self, address, bank = 0):
     log.info("Initialize MCP23017 on 0x{0:x}".format(address))
     #self._lock = Lock()
     self.ADDRESS = address
