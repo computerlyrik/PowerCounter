@@ -7,7 +7,7 @@ from threading import Thread
 from queue import Queue, Empty
 
 from PC4004B import PC4004B
-from MCP23017 import MCP23017, PortManager, IOCON
+from MCP23017.MCP23017 import MCP23017, PortManager, IOCON
 
 # INITIALIZE DISPLAY
 display = PC4004B()
