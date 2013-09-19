@@ -163,6 +163,11 @@ class PortManager:
   def _resolve_register(self,register):
     return register|self.PREFIX
 
+  '''
+  def _resolve_register(self,register):
+    return register + self.PREFIX
+  '''
+
   def _high_level_setter_single_pin(self, pin, mode, register):
     config = 1 << pin;
     if mode == 0:
@@ -282,13 +287,6 @@ class MCP23017:
       BUS.transaction(
               i2c.writing_bytes(self.ADDRESS, register, register_value[0][0] & ~ config))
       log.debug("Register after 0b{0:b}".format(register_value[0][0] & (config ^ 0b11111111)))
-
-  # set up a interrupt handler for all ports registered on this chip
-  def set_interrupt_handler(self, callback_method):
-    for name, portmanager in self.PORT.items():
-      log.info("Add callback to Port {0} on address 0x{1:x}".format(name, self.ADDRESS))
-      port_manager = self.PORT[name]
-      port_manager.set_callback(callback_method)
 
   # read and write to specific register
   def read(self, register):
