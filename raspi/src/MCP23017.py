@@ -108,7 +108,7 @@ class PortManager:
     log.debug("Set callback "+str(callback))
     self.state = BUS.transaction(
       #Set port to input pin
-      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['GPIO'])),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(self.parent.REGISTER['GPIO'])),
       i2c.reading(self.parent.ADDRESS, 1))[0][0] ^ 0b11111111
     log.debug("Re-Setting initial state of port is now 0b{0:b}".format(self.state))
     if self.external_callback is None:
@@ -123,13 +123,13 @@ class PortManager:
     log.debug("Before State is 0b{0:b}".format(self.state))
     erg = BUS.transaction(
       #READ INTF TO FIND OUT INITIATING PIN
-      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['INTF'])),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(self.parent.REGISTER['INTF'])),
       i2c.reading(self.parent.ADDRESS,1),
       #READ INTCAP TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
-      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['INTCAP'])),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(self.parent.REGISTER['INTCAP'])),
       i2c.reading(self.parent.ADDRESS,1),
       #READ GPIO TO GET CURRENTLY ACTIVATED PINS | RESETS THE INTERRUPT
-      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(REGISTER['GPIO'])),
+      i2c.writing_bytes(self.parent.ADDRESS,self._resolve_register(self.parent.REGISTER['GPIO'])),
       i2c.reading(self.parent.ADDRESS,1),
 
     )
