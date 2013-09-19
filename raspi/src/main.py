@@ -91,9 +91,9 @@ for name,port in ports.items():
   #Set port to input pin
   port.pin_mode(0xff)
   # WRITE Register configure Interrupt mode to compare on Value(INTCON)
-  port.parent.write(port.PREFIX|port.parent.REGISTER['INTCON'], 0xff)
+  port.interrupt_compare(0xff)
   # WRITE Register set compare Value 
-  port.parent.write(port.PREFIX|port.parent.REGISTER['DEFVAL'], 0xff)
+  port.interrupt_compare_value(0xff)
   # reflect opposite polarity of pins in GPIO register
   port.input_invert(0x00)
   # WRITE Register activate internal pullups

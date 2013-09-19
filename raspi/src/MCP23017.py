@@ -156,8 +156,9 @@ class PortManager:
     log.info("Sending changes 0b{0:b} to callback method".format(changes))
     self.external_callback(changes, self.PREFIX, self.parent.ADDRESS)
 
-
+  ##########################
   #Arduino-Lib like methods
+  ##########################
 
   def _resolve_register(self,register):
     return register|self.PREFIX
@@ -191,12 +192,28 @@ class PortManager:
   def input_invert(self, mode):
     self.parent.write(self._resolve_register(self.parent.REGISTER['IPOL']), mode)
 
+  ####################
+  # Interrupts
+  ####################
+
   #set interrupt for single pin  
   def interrupt_enable(self, pin, mode):
     self._high_level_setter_single_pin(self, pin, mode, self._resolve_register(self.parent.REGISTER['GPINTEN']))
   #set inerrupt for all pins
   def interrupt_enable(self, mode):
     self.parent.write(self._resolve_register(self.parent.REGISTER['GPINTEN']), mode)
+
+  #set interrupt on comare for all pins - set DEFVAL accordingly
+  def interrupt_compare(self, mode):
+    self.parent.write(self._resolve_register(self.parent.REGISTER['INTCON']), mode)
+
+  #set interrupt on comare for all pins - set DEFVAL accordingly
+  def interrupt_compare_value(self, mode):
+    self.parent.write(self._resolve_register(self.parent.REGISTER['DEFVAL']), mode)
+
+  ######################
+  # Reading and Writing
+  ######################
 
   #write single pin value
   def digital_write(self, pin, mode):
