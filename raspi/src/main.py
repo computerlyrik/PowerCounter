@@ -31,11 +31,10 @@ service_headers = {'Content-type': 'application/json', 'Accept': 'application/js
 ticks_queue = Queue()
 
 #CONFIGURE LOGGING
-logging.basicConfig()
+FORMAT = '%(asctime)s - %(name)s:%(levelname)s - %(message)s'
+logging.basicConfig(format=FORMAT)
 logging.getLogger( "MCP23017" ).setLevel( logging.INFO )
 logging.getLogger( "PC4004B" ).setLevel( logging.INFO )
-FORMAT = '%(asctime) - %(levelname):%(name)s - %(message)s'
-logging.basicConfig(format=FORMAT)
 log = logging.getLogger("PowerCounter")
 log.setLevel(logging.INFO)
 
