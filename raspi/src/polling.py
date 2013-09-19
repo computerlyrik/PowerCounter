@@ -4,24 +4,33 @@ import logging
 logging.basicConfig()
 logging.getLogger( "MCP23017" ).setLevel( logging.DEBUG )
 
+
 chips = [MCP23017(0x20, 1),
           MCP23017(0x21, 1)]
 
+ports = {}
+#SET UP SHIELD
+chip1 = MCP23017(0x20, 1)
+chip1.set_config(IOCON['INTPOL'])
+ports.update(chip1.generate_ports({'A':4, 'B':17}))
 
-
-
-
-#enable interrupts:
-chips[0].init_ports({'A': 4, 'B': 17})
-chips[1].init_ports({'A': 22, 'B':27})
+chip2 = MCP23017(0x21, 1)
+chip2.set_config(IOCON['INTPOL'])
+ports.update(chip2.generate_ports({'A':22, 'B':27}))
 
 def handler(string):
   print(string)
 
-chips[0].set_interrupt_handler(handler)
-chips[1].set_interrupt_handler(handler)
+for name,port in ports.items():
+  print(" Setting up port "+name)
+  #Set port to input pin
+  port.pin_mode(0xff)
+  # WRITE Register activate internal pullups
+  port.pullup_mode(0xFF)
+  #set our callback
+  port.set_callback(myCallback)
+
 
 while 1:
-  for chip in chips:
-    chip.read(0x09)
-    chip.read(0x19)
+  for name,port in ports.items():
+    port.digital_read()
