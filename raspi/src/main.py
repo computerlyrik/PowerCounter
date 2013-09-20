@@ -107,7 +107,7 @@ for name,port in ports.items():
   
   #set our callback
   port.set_callback(myCallback)
-  port.accuracy_calllback = accuracy_callback
+  port.accuracy_callback = accuracy_callback
 
 thread_consumer = Thread(target = json_tick_consumer)
 thread_consumer.start()
