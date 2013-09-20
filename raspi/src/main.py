@@ -97,9 +97,9 @@ for name,port in ports.items():
   # WRITE Register configure Interrupt mode to compare on Value(INTCON)
   port.interrupt_compare(0xff)
   # WRITE Register set compare Value 
-  port.interrupt_compare_value(0xff)
+  port.interrupt_compare_value(0x00)
   # reflect opposite polarity of pins in GPIO register
-  port.input_invert(0x00)
+  port.input_invert(0xff)
   # WRITE Register activate internal pullups
   port.pullup_mode(0xFF)
   # WRITE Register Interrupt activate (GPINTEN)
