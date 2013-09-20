@@ -33,10 +33,10 @@ ticks_queue = Queue()
 #CONFIGURE LOGGING
 FORMAT = '%(asctime)s - %(name)s:%(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT)
-logging.getLogger( "MCP23017" ).setLevel( logging.INFO )
-logging.getLogger( "PC4004B" ).setLevel( logging.INFO )
+logging.getLogger( "MCP23017" ).setLevel( logging.DEBUG )
+logging.getLogger( "PC4004B" ).setLevel( logging.DEBUG )
 log = logging.getLogger("PowerCounter")
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 
 def json_tick_consumer():
