@@ -67,6 +67,9 @@ def myCallback(ticklist, port, address):
           address, # yields the i2c address of the controller associated with the port
           int(unix_time_millis(datetime.datetime.utcnow()))))
 
+def accuracy_callback(accuracy):
+  log.info("Accuracy: {0}".format(accuracy))
+
 ports = {}
 #SET UP SHIELD
 chip1 = MCP23017(0x20, 1)
@@ -104,6 +107,7 @@ for name,port in ports.items():
   
   #set our callback
   port.set_callback(myCallback)
+  port.accuracy_calllback = accuracy_callback
 
 thread_consumer = Thread(target = json_tick_consumer)
 thread_consumer.start()
